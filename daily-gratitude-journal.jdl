@@ -1,0 +1,23 @@
+entity GratitudeEntry {
+  date LocalDate required unique
+  entry TextBlob required
+  mood Mood
+  timestamp Instant required
+}
+
+enum Mood {
+  HAPPY,
+  GRATEFUL,
+  CONTENT,
+  HOPEFUL,
+  REFLECTIVE,
+  OTHER
+}
+
+relationship ManyToOne {
+  GratitudeEntry{user(login)} to User with builtInEntity
+}
+
+paginate GratitudeEntry with pagination
+service GratitudeEntry with serviceClass
+dto GratitudeEntry with mapstruct

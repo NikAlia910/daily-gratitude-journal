@@ -1,0 +1,57 @@
+```json
+{
+  "name": "Daily Gratitude Journaling and Reflection App",
+  "description": "Guides the AI to understand and generate code for a daily gratitude journaling and reflection application, focusing on user-friendliness, data privacy, and a calming UI/UX.",
+  "triggers": [
+    {
+      "type": "file_extension",
+      "values": [".js", ".jsx", ".ts", ".tsx", ".py", ".java", ".html", ".css", ".sql", ".swift", ".kt"]
+    },
+    {
+      "type": "file_content",
+      "contains": ["gratitude", "journal", "reflection", "mood", "entry", "date", "timestamp", "reminder", "streak", "well-being", "mindful", "positive aspects", "emotional resilience"]
+    },
+    {
+      "type": "prompt_content",
+      "contains": ["gratitude journal", "daily reflection", "mood tracking", "journaling app", "emotional well-being", "mindfulness app", "personal growth", "calming UI", "affirmative design"]
+    }
+  ],
+  "actions": [
+    {
+      "type": "set_context",
+      "context": {
+        "domain": "Personal Well-being and Journaling",
+        "purpose": "Recording and reflecting on daily gratitude to cultivate a habit of gratitude, reflect on positive aspects of life, and build emotional resilience.",
+        "features": [
+          "Daily Gratitude Entry Creation",
+          "Mood Emoji/Tag Selection",
+          "Automatic Timestamping",
+          "Past Entry Browsing (Calendar/List View)",
+          "Entry Editing and Deletion",
+          "Optional Daily Reminders",
+          "Journaling Streak Tracking (Optional)",
+          "Secure Data Storage"
+        ],
+        "target_audience": "Mindful individuals seeking personal growth and emotional well-being.",
+        "ui_ux_guidelines": {
+          "design_system": "Use a clean and minimalist design system with a focus on user-friendliness and accessibility. Consider using a design system like Material Design or a custom one with a calming aesthetic.",
+          "responsiveness": "Ensure the UI is fully responsive across different devices (desktops, tablets, mobile phones).",
+          "interactivity": "Incorporate interactive elements like smooth transitions, subtle animations, and clear feedback on user actions.",
+          "data_visualization": "If implementing streak tracking, use simple and visually appealing ways to represent the data (e.g., a progress bar, a calendar with highlighted days).",
+          "accessibility": "Follow accessibility guidelines (WCAG) to ensure the app is usable by people with disabilities, including screen reader compatibility and keyboard navigation.",
+          "user_flow": "Design intuitive user flows that minimize the number of steps required to complete tasks, such as writing a new entry or browsing past entries.",
+          "performance": "Optimize the UI for fast loading times and smooth performance, especially when browsing past entries.",
+          "feedback": "Provide clear and immediate feedback to user actions (e.g., saving confirmation, deletion confirmation).",
+          "consistency": "Maintain consistent styling and behavior across all pages and components.",
+          "modern_aesthetics": "Utilize a warm and inviting color palette, clean layouts, and a visually appealing design that promotes calmness and positivity."
+        },
+        "data_privacy": "Emphasize secure and private data storage. Consider using local storage or encrypted cloud storage options. Clearly communicate data privacy policies to the user."
+      }
+    },
+    {
+        "type":"add_instruction",
+        "instruction":"When generating UI code or suggestions, prioritize user-friendliness, a calming aesthetic, and data privacy. Ensure the UI aligns with the specified design system and accessibility guidelines. Focus on creating intuitive user flows and providing clear feedback to user actions. Optimize for performance and maintain consistency across the app. When generating backend code, focus on secure data storage and efficient data retrieval."
+    }
+  ]
+}
+```
