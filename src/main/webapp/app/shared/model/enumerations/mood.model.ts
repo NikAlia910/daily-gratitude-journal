@@ -1,0 +1,13 @@
+export enum Mood {
+  HAPPY = 'HAPPY',
+
+  GRATEFUL = 'GRATEFUL',
+
+  CONTENT = 'CONTENT',
+
+  HOPEFUL = 'HOPEFUL',
+
+  REFLECTIVE = 'REFLECTIVE',
+
+  OTHER = 'OTHER',
+}
