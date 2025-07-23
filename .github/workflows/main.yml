@@ -22,10 +22,10 @@ jobs:
           java-version: 17
       - name: Install Node.js packages
         run: npm install
-      - name: Run backend test
+      - name: Run backend test with test profile
         run: |
           chmod +x mvnw
-          npm run ci:backend:test
+          ./mvnw test -Dspring.profiles.active=test
       - name: Run performance tests
         run: npm run ci:performance:test
       - name: Upload Gatling Report
