@@ -1,10 +1,639 @@
 /* ==========================================================================
-Main page styles
+Daily Gratitude Journal - Light Theme UI
 ========================================================================== */
-.hipster {
-  display: inline-block;
+
+/* Color palette for light theme */
+:root {
+  --primary-color: #4f46e5;
+  --primary-light: #6366f1;
+  --primary-very-light: #a5b4fc;
+  --secondary-color: #06b6d4;
+  --success-color: #10b981;
+  --warning-color: #f59e0b;
+  --error-color: #ef4444;
+
+  --text-primary: #1f2937;
+  --text-secondary: #6b7280;
+  --text-muted: #9ca3af;
+
+  --bg-primary: #ffffff;
+  --bg-secondary: #f9fafb;
+  --bg-accent: #f3f4f6;
+  --border-light: #e5e7eb;
+  --border-medium: #d1d5db;
+
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+.gratitude-home {
+  background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-primary) 50%, #fef7ff 100%);
+  min-height: calc(100vh - 140px);
+  padding: 2rem 0;
+}
+
+/* Enhanced Typography */
+body {
+  font-family:
+    'Inter',
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    system-ui,
+    sans-serif;
+  line-height: 1.6;
+  color: var(--text-primary);
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--text-primary);
+}
+
+/* Welcome Section - Clean Light Design */
+.welcome-section {
+  padding: 4rem 2rem;
+  background: linear-gradient(135deg, var(--bg-primary) 0%, #f0f9ff 50%, #ede9fe 100%);
+  border-radius: 24px;
+  border: 1px solid var(--border-light);
+  color: var(--text-primary);
+  box-shadow: var(--shadow-xl);
+  position: relative;
+  overflow: hidden;
+}
+
+.welcome-section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: url('data:image/svg+xml,<svg width="60" height="60" xmlns="http://www.w3.org/2000/svg"><defs><pattern id="dots" patternUnits="userSpaceOnUse" width="60" height="60"><circle cx="30" cy="30" r="1" fill="%23e5e7eb" opacity="0.4"/></pattern></defs><rect width="100%" height="100%" fill="url(%23dots)"/></svg>');
+  pointer-events: none;
+}
+
+.welcome-section > * {
+  position: relative;
+  z-index: 1;
+}
+
+.hero-icon {
+  color: var(--primary-color);
+  animation: gentle-pulse 3s ease-in-out infinite;
+}
+
+@keyframes gentle-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+  50% {
+    transform: scale(1.02);
+    opacity: 1;
+  }
+}
+
+.auth-buttons .btn {
+  padding: 1rem 2rem;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  letter-spacing: 0.025em;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  margin: 0 0.5rem;
+  box-shadow: var(--shadow-sm);
+}
+
+.auth-buttons .btn-primary {
+  background: var(--primary-color);
+  border-color: var(--primary-color);
+}
+
+.auth-buttons .btn-outline-primary {
+  color: var(--primary-color);
+  border-color: var(--primary-color);
+  background: var(--bg-primary);
+}
+
+.auth-buttons .btn:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+.auth-buttons .btn-primary:hover {
+  background: var(--primary-light);
+  border-color: var(--primary-light);
+}
+
+/* Authenticated User Interface */
+.greeting-section {
+  text-align: center;
+  margin-bottom: 3rem;
+  padding: 2rem 0;
+}
+
+.greeting-title {
+  font-size: 2.75rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 0.75rem;
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  line-height: 1.2;
+}
+
+.greeting-subtitle {
+  font-size: 1.25rem;
+  color: var(--text-secondary);
+  margin-bottom: 1.5rem;
+  font-weight: 400;
+}
+
+.streak-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  padding: 0.75rem 1.5rem;
+  border-radius: 50px;
+  background: linear-gradient(135deg, var(--success-color) 0%, #059669 100%);
+  color: white;
+  box-shadow: var(--shadow-md);
+}
+
+/* Card Styles - Clean and Modern */
+.gratitude-entry-card {
+  border: 1px solid var(--border-light);
+  border-radius: 20px;
+  box-shadow: var(--shadow-lg);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  background: var(--bg-primary);
+  overflow: hidden;
+}
+
+.gratitude-entry-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-xl);
+  border-color: var(--primary-very-light);
+}
+
+.gratitude-entry-card .card-title {
+  color: var(--text-primary);
+  font-weight: 700;
+  font-size: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.gratitude-textarea {
+  border: 2px solid var(--border-light);
+  border-radius: 16px;
+  padding: 1.25rem;
+  font-size: 1.1rem;
+  line-height: 1.7;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  resize: vertical;
+  min-height: 120px;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+}
+
+.gratitude-textarea:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+  background: var(--bg-primary);
+}
+
+.gratitude-textarea::placeholder {
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+/* Mood Selector - Improved UX */
+.mood-selector-label {
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1.1rem;
+}
+
+.mood-selector {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.mood-button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 1.25rem 1rem;
+  border: 2px solid var(--border-light);
+  border-radius: 16px;
+  background: var(--bg-primary);
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  min-height: 100px;
+}
+
+.mood-button:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+  border-color: var(--primary-very-light);
+  background: var(--bg-secondary);
+}
+
+.mood-button.selected {
+  border-color: var(--primary-color);
+  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.mood-emoji {
+  font-size: 2.5rem;
+  margin-bottom: 0.75rem;
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  filter: grayscale(0.3);
+}
+
+.mood-button:hover .mood-emoji,
+.mood-button.selected .mood-emoji {
+  transform: scale(1.1);
+  filter: grayscale(0);
+}
+
+.mood-label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-align: center;
+}
+
+.mood-button.selected .mood-label {
+  color: var(--primary-color);
+}
+
+/* Submit Button - Premium Look */
+.submit-button {
+  padding: 1rem 2.5rem;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 1.1rem;
+  border: none;
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-light) 100%);
+  color: white;
+  box-shadow: var(--shadow-md);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.submit-button:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-lg);
+  background: linear-gradient(135deg, var(--primary-light) 0%, #8b5cf6 100%);
+}
+
+.submit-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Success State Card */
+.today-complete-card {
+  border: 1px solid #d1fae5;
+  border-radius: 20px;
+  background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%);
+  box-shadow: var(--shadow-lg);
+  text-align: center;
+  padding: 1rem;
+}
+
+.complete-icon {
+  color: var(--success-color);
+  animation: success-bounce 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+@keyframes success-bounce {
+  0% {
+    transform: scale(0) rotate(-180deg);
+  }
+  50% {
+    transform: scale(1.3) rotate(-90deg);
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+/* Recent Entries - Clean List Design */
+.recent-entries-card {
+  border: 1px solid var(--border-light);
+  border-radius: 20px;
+  box-shadow: var(--shadow-lg);
+  background: var(--bg-primary);
+}
+
+.recent-entry-item {
+  padding: 1.5rem 0;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.recent-entry-item:last-child {
+  border-bottom: none;
+}
+
+.recent-entry-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.recent-entry-header strong {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.recent-entry-mood {
+  font-size: 1.5rem;
+  filter: grayscale(0.2);
+}
+
+.recent-entry-text {
+  color: var(--text-secondary);
+  line-height: 1.7;
+  margin: 0;
+  font-size: 1rem;
+}
+
+.recent-entry-divider {
+  display: none; /* We're using border-bottom instead */
+}
+
+/* Sidebar Content */
+.sidebar-content {
+  position: sticky;
+  top: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* Inspiration Card - Soft and Warm */
+.inspiration-card {
+  border: 1px solid #fed7aa;
+  border-radius: 20px;
+  background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+  position: relative;
+}
+
+.inspiration-card .card-body {
+  padding: 2rem;
+  text-align: center;
+}
+
+.inspiration-icon {
+  color: #f59e0b;
+  margin-bottom: 1rem;
+}
+
+.inspiration-quote {
+  font-size: 1.1rem;
+  font-style: italic;
+  color: #92400e;
+  margin-bottom: 1rem;
+  line-height: 1.7;
+  font-weight: 500;
+}
+
+.inspiration-author {
+  color: #b45309;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+/* Stats Card - Modern Data Visualization */
+.stats-card {
+  border: 1px solid var(--border-light);
+  border-radius: 20px;
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-light) 100%);
+  color: white;
+  box-shadow: var(--shadow-lg);
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  padding: 0.5rem;
+}
+
+.stat-item {
+  text-align: center;
+  padding: 1rem;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+}
+
+.stat-number {
+  font-size: 2.5rem;
+  font-weight: 800;
+  line-height: 1;
+  margin-bottom: 0.5rem;
+  color: white;
+}
+
+.stat-label {
+  font-size: 0.8rem;
+  opacity: 0.9;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Enhanced Responsive Design */
+@media (max-width: 768px) {
+  .gratitude-home {
+    padding: 1rem 0;
+  }
+
+  .greeting-title {
+    font-size: 2.25rem;
+  }
+
+  .mood-selector {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+  }
+
+  .mood-button {
+    padding: 1rem 0.75rem;
+    min-height: 90px;
+  }
+
+  .mood-emoji {
+    font-size: 2rem;
+  }
+
+  .stats-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .sidebar-content {
+    position: static;
+    margin-top: 2rem;
+  }
+
+  .auth-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .auth-buttons .btn {
+    margin: 0;
+    width: 100%;
+  }
+}
+
+@media (max-width: 576px) {
+  .welcome-section {
+    padding: 2rem 1rem;
+  }
+
+  .greeting-title {
+    font-size: 2rem;
+  }
+
+  .greeting-subtitle {
+    font-size: 1.1rem;
+  }
+
+  .mood-selector {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Enhanced Accessibility */
+.mood-button:focus,
+.submit-button:focus,
+.gratitude-textarea:focus,
+.btn:focus {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
+}
+
+/* Smooth Loading Animations */
+.gratitude-entry-card,
+.today-complete-card,
+.recent-entries-card,
+.inspiration-card,
+.stats-card {
+  animation: fade-in-up 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  opacity: 0;
+}
+
+.gratitude-entry-card {
+  animation-delay: 0.1s;
+}
+.recent-entries-card {
+  animation-delay: 0.2s;
+}
+.inspiration-card {
+  animation-delay: 0.3s;
+}
+.stats-card {
+  animation-delay: 0.4s;
+}
+
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Loading States */
+.submit-button .fa-spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* Interactive Elements */
+.btn,
+.mood-button,
+.card {
+  position: relative;
+  overflow: hidden;
+}
+
+.btn::before,
+.mood-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
   width: 100%;
-  height: 497px;
-  background: url('/content/images/jhipster_family_member_1.svg') no-repeat center top;
-  background-size: contain;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn:hover::before,
+.mood-button:hover::before {
+  left: 100%;
+}
+
+/* Print Styles */
+@media print {
+  .gratitude-home {
+    background: white;
+  }
+
+  .sidebar-content {
+    display: none;
+  }
+
+  .auth-buttons {
+    display: none;
+  }
 }

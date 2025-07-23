@@ -11,7 +11,10 @@ import java.time.LocalDate;
  * A GratitudeEntry.
  */
 @Entity
-@Table(name = "gratitude_entry")
+@Table(
+    name = "gratitude_entry",
+    uniqueConstraints = { @UniqueConstraint(name = "ux_gratitude_entry_user_date", columnNames = { "user_id", "date" }) }
+)
 @SuppressWarnings("common-java:DuplicatedBlocks")
 public class GratitudeEntry implements Serializable {
 
@@ -23,7 +26,7 @@ public class GratitudeEntry implements Serializable {
     private Long id;
 
     @NotNull
-    @Column(name = "date", nullable = false, unique = true)
+    @Column(name = "date", nullable = false)
     private LocalDate date;
 
     @Lob

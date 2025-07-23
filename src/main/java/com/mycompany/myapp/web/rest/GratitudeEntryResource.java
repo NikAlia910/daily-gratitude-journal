@@ -8,6 +8,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -16,6 +17,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -61,10 +63,17 @@ public class GratitudeEntryResource {
         if (gratitudeEntryDTO.getId() != null) {
             throw new BadRequestAlertException("A new gratitudeEntry cannot already have an ID", ENTITY_NAME, "idexists");
         }
-        gratitudeEntryDTO = gratitudeEntryService.save(gratitudeEntryDTO);
-        return ResponseEntity.created(new URI("/api/gratitude-entries/" + gratitudeEntryDTO.getId()))
-            .headers(HeaderUtil.createEntityCreationAlert(applicationName, false, ENTITY_NAME, gratitudeEntryDTO.getId().toString()))
-            .body(gratitudeEntryDTO);
+
+        try {
+            gratitudeEntryDTO = gratitudeEntryService.save(gratitudeEntryDTO);
+            return ResponseEntity.created(new URI("/api/gratitude-entries/" + gratitudeEntryDTO.getId()))
+                .headers(HeaderUtil.createEntityCreationAlert(applicationName, false, ENTITY_NAME, gratitudeEntryDTO.getId().toString()))
+                .body(gratitudeEntryDTO);
+        } catch (BadRequestAlertException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new BadRequestAlertException("Error creating gratitude entry: " + e.getMessage(), ENTITY_NAME, "creationerror");
+        }
     }
 
     /**
@@ -137,7 +146,7 @@ public class GratitudeEntryResource {
     }
 
     /**
-     * {@code GET  /gratitude-entries} : get all the gratitudeEntries.
+     * {@code GET  /gratitude-entries} : get all the gratitudeEntries for the current user.
      *
      * @param pageable the pagination information.
      * @param eagerload flag to eager load entities from relationships (This is applicable for many-to-many).
@@ -148,7 +157,7 @@ public class GratitudeEntryResource {
         @org.springdoc.core.annotations.ParameterObject Pageable pageable,
         @RequestParam(name = "eagerload", required = false, defaultValue = "true") boolean eagerload
     ) {
-        LOG.debug("REST request to get a page of GratitudeEntries");
+        LOG.debug("REST request to get a page of GratitudeEntries for current user");
         Page<GratitudeEntryDTO> page;
         if (eagerload) {
             page = gratitudeEntryService.findAllWithEagerRelationships(pageable);
@@ -157,6 +166,64 @@ public class GratitudeEntryResource {
         }
         HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), page);
         return ResponseEntity.ok().headers(headers).body(page.getContent());
+    }
+
+    /**
+     * {@code GET  /gratitude-entries/by-date-range} : get gratitudeEntries for current user within date range.
+     *
+     * @param startDate the start date (optional)
+     * @param endDate the end date (optional)
+     * @param pageable the pagination information
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list of gratitudeEntries in body.
+     */
+    @GetMapping("/by-date-range")
+    public ResponseEntity<List<GratitudeEntryDTO>> getGratitudeEntriesByDateRange(
+        @RequestParam(name = "startDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+        @RequestParam(name = "endDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
+        @org.springdoc.core.annotations.ParameterObject Pageable pageable
+    ) {
+        LOG.debug("REST request to get GratitudeEntries for current user between {} and {}", startDate, endDate);
+
+        // Default to last 30 days if no dates provided
+        if (startDate == null && endDate == null) {
+            endDate = LocalDate.now();
+            startDate = endDate.minusDays(30);
+        } else if (startDate == null) {
+            startDate = endDate.minusDays(30);
+        } else if (endDate == null) {
+            endDate = LocalDate.now();
+        }
+
+        Page<GratitudeEntryDTO> page = gratitudeEntryService.findByDateRange(startDate, endDate, pageable);
+        HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), page);
+        return ResponseEntity.ok().headers(headers).body(page.getContent());
+    }
+
+    /**
+     * {@code GET  /gratitude-entries/by-date/{date}} : get the gratitudeEntry for current user on specific date.
+     *
+     * @param date the date to retrieve entry for.
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the gratitudeEntryDTO, or with status {@code 404 (Not Found)}.
+     */
+    @GetMapping("/by-date/{date}")
+    public ResponseEntity<GratitudeEntryDTO> getGratitudeEntryByDate(
+        @PathVariable("date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date
+    ) {
+        LOG.debug("REST request to get GratitudeEntry for current user on date {}", date);
+        Optional<GratitudeEntryDTO> gratitudeEntryDTO = gratitudeEntryService.findByDate(date);
+        return ResponseUtil.wrapOrNotFound(gratitudeEntryDTO);
+    }
+
+    /**
+     * {@code GET  /gratitude-entries/today} : get the gratitudeEntry for current user for today.
+     *
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the gratitudeEntryDTO, or with status {@code 404 (Not Found)}.
+     */
+    @GetMapping("/today")
+    public ResponseEntity<GratitudeEntryDTO> getTodaysGratitudeEntry() {
+        LOG.debug("REST request to get today's GratitudeEntry for current user");
+        Optional<GratitudeEntryDTO> gratitudeEntryDTO = gratitudeEntryService.findByDate(LocalDate.now());
+        return ResponseUtil.wrapOrNotFound(gratitudeEntryDTO);
     }
 
     /**

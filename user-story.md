@@ -7,11 +7,13 @@
 **So that** I can cultivate a habit of gratitude, reflect on the positive aspects of my life, and build emotional resilience over time.
 
 **Business Logic**:
+
 - Each entry is associated with a specific date.
 - The application should handle edge cases such as missing dates or multiple entries on the same date.
 - Data should be stored securely and privately.
 
 **Acceptance Criteria**:
+
 1. I can open the app and easily access a screen to write a new gratitude entry for the current day.
 2. I can add a mood emoji or tag to my gratitude entry.
 3. My gratitude entry is automatically timestamped and saved.
@@ -21,6 +23,7 @@
 7. The app interface is warm, safe, and affirming.
 
 **Functional Requirements**:
+
 - The application must provide a text input field for writing the gratitude entry.
 - The application must provide a selection of mood emojis or tags.
 - The application must automatically timestamp each entry with the date and time.
@@ -31,6 +34,7 @@
 - The application must track and display a journaling streak (optional).
 
 **Non-Functional Requirements**:
+
 - The application must be responsive and performant.
 - The application must be secure and protect user data.
 - The application must be accessible to users with disabilities.
@@ -38,6 +42,7 @@
 - The application should be compatible with a range of devices and operating systems.
 
 **UI Design**:
+
 - The main screen should display the current date and a clear call to action to write a new entry.
 - The text input field should be large and easy to use.
 - The mood emoji/tag selection should be visually appealing and intuitive.

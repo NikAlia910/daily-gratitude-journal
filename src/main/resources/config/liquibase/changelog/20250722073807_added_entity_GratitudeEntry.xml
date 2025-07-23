@@ -15,7 +15,7 @@
                 <constraints primaryKey="true" nullable="false"/>
             </column>
             <column name="date" type="date">
-                <constraints nullable="false" unique="true" uniqueConstraintName="ux_gratitude_entry__date" />
+                <constraints nullable="false" />
             </column>
             <column name="entry" type="${clobType}">
                 <constraints nullable="false" />
@@ -32,6 +32,12 @@
             <!-- jhipster-needle-liquibase-add-column - JHipster will add columns here -->
         </createTable>
         <dropDefaultValue tableName="gratitude_entry" columnName="timestamp" columnDataType="${datetimeType}"/>
+        
+        <!-- Add composite unique constraint for user_id + date -->
+        <addUniqueConstraint
+            tableName="gratitude_entry"
+            columnNames="user_id, date"
+            constraintName="ux_gratitude_entry_user_date"/>
     </changeSet>
 
     <!-- jhipster-needle-liquibase-add-changeset - JHipster will add changesets here -->

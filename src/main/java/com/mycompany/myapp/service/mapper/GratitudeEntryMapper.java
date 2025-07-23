@@ -19,4 +19,14 @@ public interface GratitudeEntryMapper extends EntityMapper<GratitudeEntryDTO, Gr
     @Mapping(target = "id", source = "id")
     @Mapping(target = "login", source = "login")
     UserDTO toDtoUserLogin(User user);
+
+    /**
+     * Partially update a GratitudeEntry entity from DTO, preserving timestamp and user fields.
+     */
+    @Override
+    @Named("partialUpdate")
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    @Mapping(target = "timestamp", ignore = true)
+    @Mapping(target = "user", ignore = true)
+    void partialUpdate(@MappingTarget GratitudeEntry entity, GratitudeEntryDTO dto);
 }

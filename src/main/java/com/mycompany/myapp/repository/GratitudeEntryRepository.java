@@ -1,6 +1,7 @@
 package com.mycompany.myapp.repository;
 
 import com.mycompany.myapp.domain.GratitudeEntry;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.domain.Page;
@@ -14,8 +15,42 @@ import org.springframework.stereotype.Repository;
  */
 @Repository
 public interface GratitudeEntryRepository extends JpaRepository<GratitudeEntry, Long> {
-    @Query("select gratitudeEntry from GratitudeEntry gratitudeEntry where gratitudeEntry.user.login = ?#{authentication.name}")
+    @Query(
+        "select gratitudeEntry from GratitudeEntry gratitudeEntry where gratitudeEntry.user.login = ?#{authentication.name} order by gratitudeEntry.date desc, gratitudeEntry.timestamp desc"
+    )
     List<GratitudeEntry> findByUserIsCurrentUser();
+
+    @Query(
+        "select gratitudeEntry from GratitudeEntry gratitudeEntry where gratitudeEntry.user.login = ?#{authentication.name} order by gratitudeEntry.date desc, gratitudeEntry.timestamp desc"
+    )
+    Page<GratitudeEntry> findByUserIsCurrentUser(Pageable pageable);
+
+    @Query(
+        "select gratitudeEntry from GratitudeEntry gratitudeEntry where gratitudeEntry.user.login = ?#{authentication.name} and gratitudeEntry.date between :startDate and :endDate order by gratitudeEntry.date desc, gratitudeEntry.timestamp desc"
+    )
+    List<GratitudeEntry> findByUserIsCurrentUserAndDateBetween(
+        @Param("startDate") LocalDate startDate,
+        @Param("endDate") LocalDate endDate
+    );
+
+    @Query(
+        "select gratitudeEntry from GratitudeEntry gratitudeEntry where gratitudeEntry.user.login = ?#{authentication.name} and gratitudeEntry.date between :startDate and :endDate order by gratitudeEntry.date desc, gratitudeEntry.timestamp desc"
+    )
+    Page<GratitudeEntry> findByUserIsCurrentUserAndDateBetween(
+        @Param("startDate") LocalDate startDate,
+        @Param("endDate") LocalDate endDate,
+        Pageable pageable
+    );
+
+    @Query(
+        "select gratitudeEntry from GratitudeEntry gratitudeEntry where gratitudeEntry.user.login = ?#{authentication.name} and gratitudeEntry.date = :date"
+    )
+    Optional<GratitudeEntry> findByUserIsCurrentUserAndDate(@Param("date") LocalDate date);
+
+    @Query(
+        "select count(gratitudeEntry) > 0 from GratitudeEntry gratitudeEntry where gratitudeEntry.user.login = ?#{authentication.name} and gratitudeEntry.date = :date"
+    )
+    boolean existsByUserIsCurrentUserAndDate(@Param("date") LocalDate date);
 
     default Optional<GratitudeEntry> findOneWithEagerRelationships(Long id) {
         return this.findOneWithToOneRelationships(id);

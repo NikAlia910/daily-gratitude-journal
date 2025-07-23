@@ -11,6 +11,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mycompany.myapp.IntegrationTest;
 import com.mycompany.myapp.domain.GratitudeEntry;
+import com.mycompany.myapp.domain.User;
 import com.mycompany.myapp.domain.enumeration.Mood;
 import com.mycompany.myapp.repository.GratitudeEntryRepository;
 import com.mycompany.myapp.repository.UserRepository;
@@ -25,6 +26,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicLong;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -36,6 +38,9 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
@@ -46,7 +51,7 @@ import org.springframework.transaction.annotation.Transactional;
 @IntegrationTest
 @ExtendWith(MockitoExtension.class)
 @AutoConfigureMockMvc
-@WithMockUser
+@WithMockUser("testuser")
 class GratitudeEntryResourceIT {
 
     private static final LocalDate DEFAULT_DATE = LocalDate.ofEpochDay(0L);
@@ -92,6 +97,7 @@ class GratitudeEntryResourceIT {
     private MockMvc restGratitudeEntryMockMvc;
 
     private GratitudeEntry gratitudeEntry;
+    private User testUser;
 
     private GratitudeEntry insertedGratitudeEntry;
 
@@ -117,7 +123,19 @@ class GratitudeEntryResourceIT {
 
     @BeforeEach
     void initTest() {
+        // Create and save test user
+        testUser = new User();
+        testUser.setLogin("testuser");
+        testUser.setPassword(RandomStringUtils.insecure().nextAlphanumeric(60));
+        testUser.setEmail("test@example.com");
+        testUser.setFirstName("Test");
+        testUser.setLastName("User");
+        testUser.setActivated(true);
+        testUser.setLangKey("en");
+        testUser = userRepository.save(testUser);
+
         gratitudeEntry = createEntity();
+        gratitudeEntry.setUser(testUser);
     }
 
     @AfterEach
@@ -125,6 +143,9 @@ class GratitudeEntryResourceIT {
         if (insertedGratitudeEntry != null) {
             gratitudeEntryRepository.delete(insertedGratitudeEntry);
             insertedGratitudeEntry = null;
+        }
+        if (testUser != null) {
+            userRepository.delete(testUser);
         }
     }
 
@@ -276,7 +297,8 @@ class GratitudeEntryResourceIT {
         GratitudeEntry updatedGratitudeEntry = gratitudeEntryRepository.findById(gratitudeEntry.getId()).orElseThrow();
         // Disconnect from session so that the updates on updatedGratitudeEntry are not directly saved in db
         em.detach(updatedGratitudeEntry);
-        updatedGratitudeEntry.date(UPDATED_DATE).entry(UPDATED_ENTRY).mood(UPDATED_MOOD).timestamp(UPDATED_TIMESTAMP);
+        // Note: timestamp should be preserved (not updated) according to business logic
+        updatedGratitudeEntry.date(UPDATED_DATE).entry(UPDATED_ENTRY).mood(UPDATED_MOOD);
         GratitudeEntryDTO gratitudeEntryDTO = gratitudeEntryMapper.toDto(updatedGratitudeEntry);
 
         restGratitudeEntryMockMvc
@@ -289,7 +311,15 @@ class GratitudeEntryResourceIT {
 
         // Validate the GratitudeEntry in the database
         assertSameRepositoryCount(databaseSizeBeforeUpdate);
-        assertPersistedGratitudeEntryToMatchAllProperties(updatedGratitudeEntry);
+        // Create expected entity with preserved timestamp for verification
+        GratitudeEntry expectedGratitudeEntry = new GratitudeEntry()
+            .id(updatedGratitudeEntry.getId())
+            .date(UPDATED_DATE)
+            .entry(UPDATED_ENTRY)
+            .mood(UPDATED_MOOD)
+            .timestamp(gratitudeEntry.getTimestamp()) // Original timestamp should be preserved
+            .user(testUser);
+        assertPersistedGratitudeEntryToMatchAllProperties(expectedGratitudeEntry);
     }
 
     @Test
@@ -366,7 +396,7 @@ class GratitudeEntryResourceIT {
         GratitudeEntry partialUpdatedGratitudeEntry = new GratitudeEntry();
         partialUpdatedGratitudeEntry.setId(gratitudeEntry.getId());
 
-        partialUpdatedGratitudeEntry.entry(UPDATED_ENTRY).mood(UPDATED_MOOD).timestamp(UPDATED_TIMESTAMP);
+        partialUpdatedGratitudeEntry.entry(UPDATED_ENTRY).mood(UPDATED_MOOD);
 
         restGratitudeEntryMockMvc
             .perform(
@@ -397,7 +427,7 @@ class GratitudeEntryResourceIT {
         GratitudeEntry partialUpdatedGratitudeEntry = new GratitudeEntry();
         partialUpdatedGratitudeEntry.setId(gratitudeEntry.getId());
 
-        partialUpdatedGratitudeEntry.date(UPDATED_DATE).entry(UPDATED_ENTRY).mood(UPDATED_MOOD).timestamp(UPDATED_TIMESTAMP);
+        partialUpdatedGratitudeEntry.date(UPDATED_DATE).entry(UPDATED_ENTRY).mood(UPDATED_MOOD);
 
         restGratitudeEntryMockMvc
             .perform(
@@ -408,9 +438,17 @@ class GratitudeEntryResourceIT {
             .andExpect(status().isOk());
 
         // Validate the GratitudeEntry in the database
-
         assertSameRepositoryCount(databaseSizeBeforeUpdate);
-        assertGratitudeEntryUpdatableFieldsEquals(partialUpdatedGratitudeEntry, getPersistedGratitudeEntry(partialUpdatedGratitudeEntry));
+
+        // Create expected entity with preserved timestamp for verification
+        GratitudeEntry expectedGratitudeEntry = new GratitudeEntry()
+            .id(partialUpdatedGratitudeEntry.getId())
+            .date(UPDATED_DATE)
+            .entry(UPDATED_ENTRY)
+            .mood(UPDATED_MOOD)
+            .timestamp(gratitudeEntry.getTimestamp()) // Original timestamp should be preserved
+            .user(testUser);
+        assertGratitudeEntryUpdatableFieldsEquals(expectedGratitudeEntry, getPersistedGratitudeEntry(partialUpdatedGratitudeEntry));
     }
 
     @Test
