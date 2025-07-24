@@ -16,6 +16,8 @@ spring:
     password:
     hikari:
       auto-commit: false
+  liquibase:
+    contexts: test
   jpa:
     open-in-view: false
     hibernate:

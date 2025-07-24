@@ -20,6 +20,8 @@ spring:
         prepStmtCacheSize: 250
         prepStmtCacheSqlLimit: 2048
         useServerPrepStmts: true
+  liquibase:
+    contexts: test
   jpa:
     open-in-view: false
     hibernate:

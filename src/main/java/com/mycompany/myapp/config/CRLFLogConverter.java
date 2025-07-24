@@ -47,11 +47,23 @@ public class CRLFLogConverter extends CompositeConverter<ILoggingEvent> {
     protected String transform(ILoggingEvent event, String in) {
         AnsiElement element = ELEMENTS.get(getFirstOption());
         List<Marker> markers = event.getMarkerList();
-        if ((markers != null && !markers.isEmpty() && markers.get(0).contains(CRLF_SAFE_MARKER)) || isLoggerSafe(event)) {
+        if (containsCrlfSafeMarker(markers) || isLoggerSafe(event)) {
             return in;
         }
         String replacement = element == null ? "_" : toAnsiString("_", element);
         return in.replaceAll("[\n\r\t]", replacement);
+    }
+
+    private boolean containsCrlfSafeMarker(List<Marker> markers) {
+        if (markers == null || markers.isEmpty()) {
+            return false;
+        }
+        for (Marker marker : markers) {
+            if (CRLF_SAFE_MARKER.equals(marker)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     protected boolean isLoggerSafe(ILoggingEvent event) {

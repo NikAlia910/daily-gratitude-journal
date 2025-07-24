@@ -12,12 +12,14 @@ import java.nio.file.Path;
 import java.util.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 import org.springframework.boot.web.embedded.undertow.UndertowServletWebServerFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.mock.env.MockEnvironment;
 import org.springframework.mock.web.MockServletContext;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.cors.CorsConfiguration;
 import tech.jhipster.config.JHipsterConstants;
 import tech.jhipster.config.JHipsterProperties;
 
@@ -35,20 +37,28 @@ class WebConfigurerTest {
     private JHipsterProperties props;
 
     @BeforeEach
+    @Timeout(value = 30) // Set specific timeout for setup
     void setup() {
         servletContext = spy(new MockServletContext());
         doReturn(mock(FilterRegistration.Dynamic.class)).when(servletContext).addFilter(anyString(), any(Filter.class));
         doReturn(mock(ServletRegistration.Dynamic.class)).when(servletContext).addServlet(anyString(), any(Servlet.class));
 
         env = new MockEnvironment();
-        props = new JHipsterProperties();
 
+        // Use real JHipsterProperties with proper initialization
+        props = new JHipsterProperties();
+        // Manually ensure CORS is properly initialized
+        props.getCors().setAllowedOrigins(new ArrayList<>());
+        props.getCors().setAllowedOriginPatterns(new ArrayList<>());
+
+        // Create WebConfigurer here now that we have proper setup
         webConfigurer = new WebConfigurer(env, props);
     }
 
     @Test
     void shouldCustomizeServletContainer() {
         env.setActiveProfiles(JHipsterConstants.SPRING_PROFILE_PRODUCTION);
+
         UndertowServletWebServerFactory container = new UndertowServletWebServerFactory();
         webConfigurer.customize(container);
         assertThat(container.getMimeMappings().get("abs")).isEqualTo("audio/x-mpeg");
@@ -61,6 +71,7 @@ class WebConfigurerTest {
 
     @Test
     void shouldCorsFilterOnApiPath() throws Exception {
+        // Setup CORS configuration for this test
         props.getCors().setAllowedOrigins(Collections.singletonList("other.domain.com"));
         props.getCors().setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE"));
         props.getCors().setAllowedHeaders(Collections.singletonList("*"));
@@ -90,6 +101,7 @@ class WebConfigurerTest {
 
     @Test
     void shouldCorsFilterOnOtherPath() throws Exception {
+        // Setup CORS configuration for this test
         props.getCors().setAllowedOrigins(Collections.singletonList("*"));
         props.getCors().setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE"));
         props.getCors().setAllowedHeaders(Collections.singletonList("*"));
@@ -106,6 +118,7 @@ class WebConfigurerTest {
 
     @Test
     void shouldCorsFilterDeactivatedForNullAllowedOrigins() throws Exception {
+        // Setup CORS configuration with null allowed origins
         props.getCors().setAllowedOrigins(null);
 
         MockMvc mockMvc = MockMvcBuilders.standaloneSetup(new WebConfigurerTestController()).addFilters(webConfigurer.corsFilter()).build();
@@ -118,6 +131,7 @@ class WebConfigurerTest {
 
     @Test
     void shouldCorsFilterDeactivatedForEmptyAllowedOrigins() throws Exception {
+        // Setup CORS configuration with empty allowed origins
         props.getCors().setAllowedOrigins(new ArrayList<>());
 
         MockMvc mockMvc = MockMvcBuilders.standaloneSetup(new WebConfigurerTestController()).addFilters(webConfigurer.corsFilter()).build();
