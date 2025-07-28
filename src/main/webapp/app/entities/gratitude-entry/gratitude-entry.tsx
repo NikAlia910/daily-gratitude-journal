@@ -90,65 +90,91 @@ export const GratitudeEntry = () => {
   };
 
   return (
-    <div>
-      <h2 id="gratitude-entry-heading" data-cy="GratitudeEntryHeading">
+    <div data-testid="gratitude-entry-list-container">
+      <h2 id="gratitude-entry-heading" data-cy="GratitudeEntryHeading" data-testid="gratitude-entry-heading">
         Gratitude Entries
-        <div className="d-flex justify-content-end">
-          <Button className="me-2" color="info" onClick={handleSyncList} disabled={loading}>
+        <div className="d-flex justify-content-end" data-testid="gratitude-entry-actions">
+          <Button className="me-2" color="info" onClick={handleSyncList} disabled={loading} data-testid="btn-refresh-gratitude-entries">
             <FontAwesomeIcon icon="sync" spin={loading} /> Refresh list
           </Button>
-          <Link to="/gratitude-entry/new" className="btn btn-primary jh-create-entity" id="jh-create-entity" data-cy="entityCreateButton">
+          <Link
+            to="/gratitude-entry/new"
+            className="btn btn-primary jh-create-entity"
+            id="jh-create-entity"
+            data-cy="entityCreateButton"
+            data-testid="btn-create-gratitude-entry"
+          >
             <FontAwesomeIcon icon="plus" />
             &nbsp; Create a new Gratitude Entry
           </Link>
         </div>
       </h2>
-      <div className="table-responsive">
+      <div className="table-responsive" data-testid="gratitude-entry-table-container">
+        {loading && (
+          <div data-testid="gratitude-entry-loading" className="text-center p-3">
+            <FontAwesomeIcon icon="spinner" spin /> Loading gratitude entries...
+          </div>
+        )}
         {gratitudeEntryList && gratitudeEntryList.length > 0 ? (
-          <Table responsive>
-            <thead>
+          <Table responsive data-testid="gratitude-entry-table">
+            <thead data-testid="gratitude-entry-table-header">
               <tr>
-                <th className="hand" onClick={sort('id')}>
+                <th className="hand" onClick={sort('id')} data-testid="header-sort-id">
                   ID <FontAwesomeIcon icon={getSortIconByFieldName('id')} />
                 </th>
-                <th className="hand" onClick={sort('date')}>
+                <th className="hand" onClick={sort('date')} data-testid="header-sort-date">
                   Date <FontAwesomeIcon icon={getSortIconByFieldName('date')} />
                 </th>
-                <th className="hand" onClick={sort('entry')}>
+                <th className="hand" onClick={sort('entry')} data-testid="header-sort-entry">
                   Entry <FontAwesomeIcon icon={getSortIconByFieldName('entry')} />
                 </th>
-                <th className="hand" onClick={sort('mood')}>
+                <th className="hand" onClick={sort('mood')} data-testid="header-sort-mood">
                   Mood <FontAwesomeIcon icon={getSortIconByFieldName('mood')} />
                 </th>
-                <th className="hand" onClick={sort('timestamp')}>
+                <th className="hand" onClick={sort('timestamp')} data-testid="header-sort-timestamp">
                   Timestamp <FontAwesomeIcon icon={getSortIconByFieldName('timestamp')} />
                 </th>
-                <th>
+                <th data-testid="header-user">
                   User <FontAwesomeIcon icon="sort" />
                 </th>
-                <th />
+                <th data-testid="header-actions">Actions</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody data-testid="gratitude-entry-table-body">
               {gratitudeEntryList.map((gratitudeEntry, i) => (
-                <tr key={`entity-${i}`} data-cy="entityTable">
-                  <td>
-                    <Button tag={Link} to={`/gratitude-entry/${gratitudeEntry.id}`} color="link" size="sm">
+                <tr key={`entity-${i}`} data-cy="entityTable" data-testid={`gratitude-entry-row-${gratitudeEntry.id}`}>
+                  <td data-testid={`gratitude-entry-id-${gratitudeEntry.id}`}>
+                    <Button
+                      tag={Link}
+                      to={`/gratitude-entry/${gratitudeEntry.id}`}
+                      color="link"
+                      size="sm"
+                      data-testid={`btn-view-gratitude-entry-${gratitudeEntry.id}`}
+                    >
                       {gratitudeEntry.id}
                     </Button>
                   </td>
-                  <td>
+                  <td data-testid={`gratitude-entry-date-${gratitudeEntry.id}`}>
                     {gratitudeEntry.date ? <TextFormat type="date" value={gratitudeEntry.date} format={APP_LOCAL_DATE_FORMAT} /> : null}
                   </td>
-                  <td>{gratitudeEntry.entry}</td>
-                  <td>{gratitudeEntry.mood}</td>
-                  <td>
+                  <td data-testid={`gratitude-entry-text-${gratitudeEntry.id}`}>{gratitudeEntry.entry}</td>
+                  <td data-testid={`gratitude-entry-mood-${gratitudeEntry.id}`}>
+                    <span className={`badge bg-${gratitudeEntry.mood?.toLowerCase() || 'secondary'}`}>{gratitudeEntry.mood}</span>
+                  </td>
+                  <td data-testid={`gratitude-entry-timestamp-${gratitudeEntry.id}`}>
                     {gratitudeEntry.timestamp ? <TextFormat type="date" value={gratitudeEntry.timestamp} format={APP_DATE_FORMAT} /> : null}
                   </td>
-                  <td>{gratitudeEntry.user ? gratitudeEntry.user.login : ''}</td>
-                  <td className="text-end">
-                    <div className="btn-group flex-btn-group-container">
-                      <Button tag={Link} to={`/gratitude-entry/${gratitudeEntry.id}`} color="info" size="sm" data-cy="entityDetailsButton">
+                  <td data-testid={`gratitude-entry-user-${gratitudeEntry.id}`}>{gratitudeEntry.user ? gratitudeEntry.user.login : ''}</td>
+                  <td className="text-end" data-testid={`gratitude-entry-actions-${gratitudeEntry.id}`}>
+                    <div className="btn-group flex-btn-group-container" data-testid={`gratitude-entry-action-buttons-${gratitudeEntry.id}`}>
+                      <Button
+                        tag={Link}
+                        to={`/gratitude-entry/${gratitudeEntry.id}`}
+                        color="info"
+                        size="sm"
+                        data-cy="entityDetailsButton"
+                        data-testid={`btn-details-gratitude-entry-${gratitudeEntry.id}`}
+                      >
                         <FontAwesomeIcon icon="eye" /> <span className="d-none d-md-inline">View</span>
                       </Button>
                       <Button
@@ -157,6 +183,7 @@ export const GratitudeEntry = () => {
                         color="primary"
                         size="sm"
                         data-cy="entityEditButton"
+                        data-testid={`btn-edit-gratitude-entry-${gratitudeEntry.id}`}
                       >
                         <FontAwesomeIcon icon="pencil-alt" /> <span className="d-none d-md-inline">Edit</span>
                       </Button>
@@ -167,6 +194,7 @@ export const GratitudeEntry = () => {
                         color="danger"
                         size="sm"
                         data-cy="entityDeleteButton"
+                        data-testid={`btn-delete-gratitude-entry-${gratitudeEntry.id}`}
                       >
                         <FontAwesomeIcon icon="trash" /> <span className="d-none d-md-inline">Delete</span>
                       </Button>
@@ -177,15 +205,19 @@ export const GratitudeEntry = () => {
             </tbody>
           </Table>
         ) : (
-          !loading && <div className="alert alert-warning">No Gratitude Entries found</div>
+          !loading && (
+            <div className="alert alert-warning" data-testid="gratitude-entry-empty-state">
+              <FontAwesomeIcon icon="info-circle" /> No Gratitude Entries found. Start your gratitude journey by creating your first entry!
+            </div>
+          )
         )}
       </div>
       {totalItems ? (
-        <div className={gratitudeEntryList && gratitudeEntryList.length > 0 ? '' : 'd-none'}>
-          <div className="justify-content-center d-flex">
+        <div className={gratitudeEntryList && gratitudeEntryList.length > 0 ? '' : 'd-none'} data-testid="gratitude-entry-pagination">
+          <div className="justify-content-center d-flex" data-testid="gratitude-entry-item-count">
             <JhiItemCount page={paginationState.activePage} total={totalItems} itemsPerPage={paginationState.itemsPerPage} />
           </div>
-          <div className="justify-content-center d-flex">
+          <div className="justify-content-center d-flex" data-testid="gratitude-entry-pagination-controls">
             <JhiPagination
               activePage={paginationState.activePage}
               onSelect={handlePagination}

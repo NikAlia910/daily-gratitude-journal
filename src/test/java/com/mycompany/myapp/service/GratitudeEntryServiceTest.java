@@ -31,6 +31,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 
 @ExtendWith(MockitoExtension.class)
 class GratitudeEntryServiceTest {
@@ -219,18 +220,22 @@ class GratitudeEntryServiceTest {
         when(gratitudeEntryRepository.save(any(GratitudeEntry.class))).thenReturn(gratitudeEntry);
         when(gratitudeEntryMapper.toDto(any(GratitudeEntry.class))).thenReturn(gratitudeEntryDTO);
 
-        // When
-        GratitudeEntryDTO result = gratitudeEntryService.update(inputDTO);
+        try (MockedStatic<SecurityUtils> securityUtils = mockStatic(SecurityUtils.class)) {
+            securityUtils.when(SecurityUtils::getCurrentUserLogin).thenReturn(Optional.of(DEFAULT_LOGIN));
 
-        // Then
-        assertThat(result).isNotNull();
-        verify(gratitudeEntryRepository).save(
-            argThat(
-                entry ->
-                    entry.getTimestamp().equals(originalTimestamp) && // Original timestamp preserved
-                    entry.getUser().equals(testUser) // Original user preserved
-            )
-        );
+            // When
+            GratitudeEntryDTO result = gratitudeEntryService.update(inputDTO);
+
+            // Then
+            assertThat(result).isNotNull();
+            verify(gratitudeEntryRepository).save(
+                argThat(
+                    entry ->
+                        entry.getTimestamp().equals(originalTimestamp) && // Original timestamp preserved
+                        entry.getUser().equals(testUser) // Original user preserved
+                )
+            );
+        }
     }
 
     @Test
@@ -407,7 +412,10 @@ class GratitudeEntryServiceTest {
     void findAllForCurrentUser_ShouldReturnUserEntriesAsList() {
         // Given
         List<GratitudeEntry> entries = Arrays.asList(gratitudeEntry);
-        when(gratitudeEntryRepository.findByUserIsCurrentUser()).thenReturn(entries);
+        Pageable pageable = PageRequest.of(0, Integer.MAX_VALUE, Sort.by(Sort.Direction.DESC, "date", "timestamp"));
+        when(gratitudeEntryRepository.findByUserIsCurrentUser(any(Pageable.class))).thenReturn(
+            new PageImpl<>(entries, pageable, entries.size())
+        );
         when(gratitudeEntryMapper.toDto(gratitudeEntry)).thenReturn(gratitudeEntryDTO);
 
         // When
@@ -416,6 +424,6 @@ class GratitudeEntryServiceTest {
         // Then
         assertThat(result).hasSize(1);
         assertThat(result.get(0).getEntry()).isEqualTo(DEFAULT_ENTRY_TEXT);
-        verify(gratitudeEntryRepository).findByUserIsCurrentUser();
+        verify(gratitudeEntryRepository).findByUserIsCurrentUser(any(Pageable.class));
     }
 }

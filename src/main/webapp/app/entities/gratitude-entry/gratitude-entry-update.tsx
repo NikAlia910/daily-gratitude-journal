@@ -78,28 +78,43 @@ export const GratitudeEntryUpdate = () => {
         };
 
   return (
-    <div>
+    <div data-testid="gratitude-entry-form-container">
       <Row className="justify-content-center">
         <Col md="8">
-          <h2 id="dailyGratitudeJournalApp.gratitudeEntry.home.createOrEditLabel" data-cy="GratitudeEntryCreateUpdateHeading">
-            Create or edit a Gratitude Entry
+          <h2
+            id="dailyGratitudeJournalApp.gratitudeEntry.home.createOrEditLabel"
+            data-cy="GratitudeEntryCreateUpdateHeading"
+            data-testid="gratitude-entry-form-heading"
+          >
+            {isNew ? 'Create a new Gratitude Entry' : 'Edit Gratitude Entry'}
           </h2>
         </Col>
       </Row>
       <Row className="justify-content-center">
         <Col md="8">
           {loading ? (
-            <p>Loading...</p>
+            <div data-testid="gratitude-entry-form-loading" className="text-center p-3">
+              <FontAwesomeIcon icon="spinner" spin /> Loading gratitude entry...
+            </div>
           ) : (
-            <ValidatedForm defaultValues={defaultValues()} onSubmit={saveEntity}>
+            <ValidatedForm defaultValues={defaultValues()} onSubmit={saveEntity} data-testid="gratitude-entry-form">
               {!isNew ? (
-                <ValidatedField name="id" required readOnly id="gratitude-entry-id" label="ID" validate={{ required: true }} />
+                <ValidatedField
+                  name="id"
+                  required
+                  readOnly
+                  id="gratitude-entry-id"
+                  label="ID"
+                  validate={{ required: true }}
+                  data-testid="input-gratitude-entry-id"
+                />
               ) : null}
               <ValidatedField
                 label="Date"
                 id="gratitude-entry-date"
                 name="date"
                 data-cy="date"
+                data-testid="input-gratitude-entry-date"
                 type="date"
                 validate={{
                   required: { value: true, message: 'This field is required.' },
@@ -110,14 +125,24 @@ export const GratitudeEntryUpdate = () => {
                 id="gratitude-entry-entry"
                 name="entry"
                 data-cy="entry"
+                data-testid="textarea-gratitude-entry-text"
                 type="textarea"
                 validate={{
                   required: { value: true, message: 'This field is required.' },
+                  minLength: { value: 10, message: 'This field is required to be at least 10 characters.' },
+                  maxLength: { value: 1000, message: 'This field cannot be longer than 1000 characters.' },
                 }}
               />
-              <ValidatedField label="Mood" id="gratitude-entry-mood" name="mood" data-cy="mood" type="select">
+              <ValidatedField
+                label="Mood"
+                id="gratitude-entry-mood"
+                name="mood"
+                data-cy="mood"
+                type="select"
+                data-testid="select-gratitude-entry-mood"
+              >
                 {moodValues.map(mood => (
-                  <option value={mood} key={mood}>
+                  <option value={mood} key={mood} data-testid={`option-mood-${mood.toLowerCase()}`}>
                     {mood}
                   </option>
                 ))}
@@ -127,32 +152,56 @@ export const GratitudeEntryUpdate = () => {
                 id="gratitude-entry-timestamp"
                 name="timestamp"
                 data-cy="timestamp"
+                data-testid="input-gratitude-entry-timestamp"
                 type="datetime-local"
                 placeholder="YYYY-MM-DD HH:mm"
                 validate={{
                   required: { value: true, message: 'This field is required.' },
                 }}
               />
-              <ValidatedField id="gratitude-entry-user" name="user" data-cy="user" label="User" type="select">
-                <option value="" key="0" />
+              <ValidatedField
+                id="gratitude-entry-user"
+                name="user"
+                data-cy="user"
+                label="User"
+                type="select"
+                data-testid="select-gratitude-entry-user"
+              >
+                <option value="" key="0" data-testid="option-user-empty" />
                 {users
                   ? users.map(otherEntity => (
-                      <option value={otherEntity.id} key={otherEntity.id}>
+                      <option value={otherEntity.id} key={otherEntity.id} data-testid={`option-user-${otherEntity.id}`}>
                         {otherEntity.login}
                       </option>
                     ))
                   : null}
               </ValidatedField>
-              <Button tag={Link} id="cancel-save" data-cy="entityCreateCancelButton" to="/gratitude-entry" replace color="info">
-                <FontAwesomeIcon icon="arrow-left" />
-                &nbsp;
-                <span className="d-none d-md-inline">Back</span>
-              </Button>
-              &nbsp;
-              <Button color="primary" id="save-entity" data-cy="entityCreateSaveButton" type="submit" disabled={updating}>
-                <FontAwesomeIcon icon="save" />
-                &nbsp; Save
-              </Button>
+              <div className="d-flex justify-content-between" data-testid="gratitude-entry-form-actions">
+                <Button
+                  tag={Link}
+                  id="cancel-save"
+                  data-cy="entityCreateCancelButton"
+                  to="/gratitude-entry"
+                  replace
+                  color="info"
+                  data-testid="btn-cancel-gratitude-entry"
+                >
+                  <FontAwesomeIcon icon="arrow-left" />
+                  &nbsp;
+                  <span className="d-none d-md-inline">Back</span>
+                </Button>
+                <Button
+                  color="primary"
+                  id="save-entity"
+                  data-cy="entityCreateSaveButton"
+                  type="submit"
+                  disabled={updating}
+                  data-testid="btn-save-gratitude-entry"
+                >
+                  <FontAwesomeIcon icon="save" />
+                  &nbsp; {updating ? 'Saving...' : 'Save'}
+                </Button>
+              </div>
             </ValidatedForm>
           )}
         </Col>

@@ -17,7 +17,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -66,6 +68,11 @@ public class GratitudeEntryService {
             throw new BadRequestAlertException("An entry already exists for this date", "gratitudeEntry", "dateexists");
         }
 
+        // Validate that ID is not provided for new entries
+        if (gratitudeEntryDTO.getId() != null) {
+            throw new BadRequestAlertException("ID should not be provided for new entries", "gratitudeEntry", "idinvalid");
+        }
+
         GratitudeEntry gratitudeEntry = gratitudeEntryMapper.toEntity(gratitudeEntryDTO);
 
         // Set current user
@@ -99,13 +106,19 @@ public class GratitudeEntryService {
             throw new BadRequestAlertException("Entry text cannot be empty", "gratitudeEntry", "entryempty");
         }
 
-        // Find existing entry to preserve timestamp
+        // Find existing entry to preserve timestamp and check ownership
         Optional<GratitudeEntry> existingEntryOpt = gratitudeEntryRepository.findById(gratitudeEntryDTO.getId());
         if (existingEntryOpt.isEmpty()) {
             throw new BadRequestAlertException("Entity not found", "gratitudeEntry", "idnotfound");
         }
 
         GratitudeEntry existingEntry = existingEntryOpt.orElseThrow();
+
+        // Check if entry belongs to current user
+        if (!belongsToCurrentUser(existingEntry)) {
+            throw new BadRequestAlertException("Entry not found or does not belong to current user", "gratitudeEntry", "accessdenied");
+        }
+
         GratitudeEntry gratitudeEntry = gratitudeEntryMapper.toEntity(gratitudeEntryDTO);
 
         // Preserve original timestamp and user
@@ -164,7 +177,12 @@ public class GratitudeEntryService {
     @Transactional(readOnly = true)
     public List<GratitudeEntryDTO> findAllForCurrentUser() {
         LOG.debug("Request to get all GratitudeEntries for current user");
-        return gratitudeEntryRepository.findByUserIsCurrentUser().stream().map(gratitudeEntryMapper::toDto).collect(Collectors.toList());
+        return gratitudeEntryRepository
+            .findByUserIsCurrentUser(PageRequest.of(0, Integer.MAX_VALUE, Sort.by(Sort.Direction.DESC, "date", "timestamp")))
+            .getContent()
+            .stream()
+            .map(gratitudeEntryMapper::toDto)
+            .collect(Collectors.toList());
     }
 
     /**

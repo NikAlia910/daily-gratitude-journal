@@ -22,6 +22,7 @@ export const GratitudeEntryDeleteDialog = () => {
 
   const gratitudeEntryEntity = useAppSelector(state => state.gratitudeEntry.entity);
   const updateSuccess = useAppSelector(state => state.gratitudeEntry.updateSuccess);
+  const loading = useAppSelector(state => state.gratitudeEntry.loading);
 
   const handleClose = () => {
     navigate(`/gratitude-entry${pageLocation.search}`);
@@ -39,19 +40,53 @@ export const GratitudeEntryDeleteDialog = () => {
   };
 
   return (
-    <Modal isOpen toggle={handleClose}>
-      <ModalHeader toggle={handleClose} data-cy="gratitudeEntryDeleteDialogHeading">
+    <Modal isOpen toggle={handleClose} data-testid="gratitude-entry-delete-modal">
+      <ModalHeader toggle={handleClose} data-cy="gratitudeEntryDeleteDialogHeading" data-testid="gratitude-entry-delete-modal-header">
         Confirm delete operation
       </ModalHeader>
-      <ModalBody id="dailyGratitudeJournalApp.gratitudeEntry.delete.question">
-        Are you sure you want to delete Gratitude Entry {gratitudeEntryEntity.id}?
+      <ModalBody id="dailyGratitudeJournalApp.gratitudeEntry.delete.question" data-testid="gratitude-entry-delete-modal-body">
+        {loading ? (
+          <div data-testid="gratitude-entry-delete-loading" className="text-center p-3">
+            <FontAwesomeIcon icon="spinner" spin /> Loading gratitude entry...
+          </div>
+        ) : gratitudeEntryEntity ? (
+          <div data-testid="gratitude-entry-delete-content">
+            <p>
+              Are you sure you want to delete the gratitude entry for{' '}
+              <strong data-testid="gratitude-entry-delete-date">
+                {gratitudeEntryEntity.date ? new Date(gratitudeEntryEntity.date).toLocaleDateString() : 'Unknown Date'}
+              </strong>
+              ?
+            </p>
+            <div className="alert alert-warning" data-testid="gratitude-entry-delete-warning">
+              <FontAwesomeIcon icon="exclamation-triangle" /> This action cannot be undone.
+            </div>
+            {gratitudeEntryEntity.entry && (
+              <div data-testid="gratitude-entry-delete-preview">
+                <strong>Entry preview:</strong>
+                <p className="text-muted">{gratitudeEntryEntity.entry.substring(0, 100)}...</p>
+              </div>
+            )}
+          </div>
+        ) : (
+          <div data-testid="gratitude-entry-delete-not-found" className="alert alert-danger">
+            <FontAwesomeIcon icon="exclamation-triangle" /> Gratitude entry not found.
+          </div>
+        )}
       </ModalBody>
-      <ModalFooter>
-        <Button color="secondary" onClick={handleClose}>
+      <ModalFooter data-testid="gratitude-entry-delete-modal-footer">
+        <Button color="secondary" onClick={handleClose} data-testid="btn-cancel-gratitude-entry-delete">
           <FontAwesomeIcon icon="ban" />
           &nbsp; Cancel
         </Button>
-        <Button id="jhi-confirm-delete-gratitudeEntry" data-cy="entityConfirmDeleteButton" color="danger" onClick={confirmDelete}>
+        <Button
+          id="jhi-confirm-delete-gratitudeEntry"
+          data-cy="entityConfirmDeleteButton"
+          color="danger"
+          onClick={confirmDelete}
+          disabled={loading || !gratitudeEntryEntity}
+          data-testid="btn-confirm-gratitude-entry-delete"
+        >
           <FontAwesomeIcon icon="trash" />
           &nbsp; Delete
         </Button>

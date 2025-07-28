@@ -15,18 +15,14 @@ import org.springframework.stereotype.Repository;
  */
 @Repository
 public interface GratitudeEntryRepository extends JpaRepository<GratitudeEntry, Long> {
-    @Query(
-        "select gratitudeEntry from GratitudeEntry gratitudeEntry where gratitudeEntry.user.login = ?#{authentication.name} order by gratitudeEntry.date desc, gratitudeEntry.timestamp desc"
-    )
+    @Query("select gratitudeEntry from GratitudeEntry gratitudeEntry where gratitudeEntry.user.login = ?#{authentication.name}")
     List<GratitudeEntry> findByUserIsCurrentUser();
 
-    @Query(
-        "select gratitudeEntry from GratitudeEntry gratitudeEntry where gratitudeEntry.user.login = ?#{authentication.name} order by gratitudeEntry.date desc, gratitudeEntry.timestamp desc"
-    )
+    @Query("select gratitudeEntry from GratitudeEntry gratitudeEntry where gratitudeEntry.user.login = ?#{authentication.name}")
     Page<GratitudeEntry> findByUserIsCurrentUser(Pageable pageable);
 
     @Query(
-        "select gratitudeEntry from GratitudeEntry gratitudeEntry where gratitudeEntry.user.login = ?#{authentication.name} and gratitudeEntry.date between :startDate and :endDate order by gratitudeEntry.date desc, gratitudeEntry.timestamp desc"
+        "select gratitudeEntry from GratitudeEntry gratitudeEntry where gratitudeEntry.user.login = ?#{authentication.name} and gratitudeEntry.date between :startDate and :endDate"
     )
     List<GratitudeEntry> findByUserIsCurrentUserAndDateBetween(
         @Param("startDate") LocalDate startDate,
@@ -34,7 +30,7 @@ public interface GratitudeEntryRepository extends JpaRepository<GratitudeEntry, 
     );
 
     @Query(
-        "select gratitudeEntry from GratitudeEntry gratitudeEntry where gratitudeEntry.user.login = ?#{authentication.name} and gratitudeEntry.date between :startDate and :endDate order by gratitudeEntry.date desc, gratitudeEntry.timestamp desc"
+        "select gratitudeEntry from GratitudeEntry gratitudeEntry where gratitudeEntry.user.login = ?#{authentication.name} and gratitudeEntry.date between :startDate and :endDate"
     )
     Page<GratitudeEntry> findByUserIsCurrentUserAndDateBetween(
         @Param("startDate") LocalDate startDate,

@@ -15,6 +15,13 @@ export const entityEditButtonSelector = '[data-cy="entityEditButton"]';
 export const entityDeleteButtonSelector = '[data-cy="entityDeleteButton"]';
 export const entityConfirmDeleteButtonSelector = '[data-cy="entityConfirmDeleteButton"]';
 
+// Gratitude Entry specific selectors
+export const gratitudeEntryListContainerSelector = '[data-testid="gratitude-entry-list-container"]';
+export const gratitudeEntryTableSelector = '[data-testid="gratitude-entry-table"]';
+export const gratitudeEntryFormSelector = '[data-testid="gratitude-entry-form"]';
+export const gratitudeEntryDetailContainerSelector = '[data-testid="gratitude-entry-detail-container"]';
+export const gratitudeEntryDeleteModalSelector = '[data-testid="gratitude-entry-delete-modal"]';
+
 // ***********************************************
 // End Specific Selector Attributes for Cypress
 // ***********************************************
@@ -60,6 +67,93 @@ Cypress.Commands.add('setFieldSelectToLastOfEntity', (fieldName: string) => {
   });
 });
 
+// Gratitude Entry specific commands
+Cypress.Commands.add('createGratitudeEntry', (entryData: { date: string; entry: string; mood: string; timestamp: string }) => {
+  return cy.authenticatedRequest({
+    method: 'POST',
+    url: '/api/gratitude-entries',
+    body: entryData,
+  });
+});
+
+Cypress.Commands.add('deleteGratitudeEntry', (entryId: number) => {
+  return cy.authenticatedRequest({
+    method: 'DELETE',
+    url: `/api/gratitude-entries/${entryId}`,
+  });
+});
+
+Cypress.Commands.add('getGratitudeEntry', (entryId: number) => {
+  return cy.authenticatedRequest({
+    method: 'GET',
+    url: `/api/gratitude-entries/${entryId}`,
+  });
+});
+
+Cypress.Commands.add('fillGratitudeEntryForm', (entryData: { date: string; entry: string; mood: string; timestamp: string }) => {
+  cy.get('[data-cy="date"]').type(entryData.date);
+  cy.get('[data-cy="entry"]').type(entryData.entry);
+  cy.get('[data-cy="mood"]').select(entryData.mood);
+  cy.get('[data-cy="timestamp"]').type(entryData.timestamp);
+});
+
+Cypress.Commands.add('submitGratitudeEntryForm', () => {
+  cy.get('[data-cy="entityCreateSaveButton"]').click();
+});
+
+Cypress.Commands.add('waitForGratitudeEntrySave', () => {
+  cy.wait('@postEntityRequest').then(({ response }) => {
+    expect(response?.statusCode).to.equal(201);
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    return response?.body;
+  });
+});
+
+Cypress.Commands.add('waitForGratitudeEntryUpdate', () => {
+  cy.wait('@putEntityRequest').then(({ response }) => {
+    expect(response?.statusCode).to.equal(200);
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    return response?.body;
+  });
+});
+
+Cypress.Commands.add('waitForGratitudeEntryDelete', () => {
+  cy.wait('@deleteEntityRequest').then(({ response }) => {
+    expect(response?.statusCode).to.equal(204);
+  });
+});
+
+Cypress.Commands.add('assertGratitudeEntryExists', (entryId: number, expectedData: any) => {
+  cy.get(`[data-testid="gratitude-entry-row-${entryId}"]`).should('exist');
+  if (expectedData.entry) {
+    cy.get(`[data-testid="gratitude-entry-text-${entryId}"]`).should('contain', expectedData.entry.substring(0, 20));
+  }
+  if (expectedData.mood) {
+    cy.get(`[data-testid="gratitude-entry-mood-${entryId}"]`).should('contain', expectedData.mood);
+  }
+});
+
+Cypress.Commands.add('assertGratitudeEntryDoesNotExist', (entryId: number) => {
+  cy.get(`[data-testid="gratitude-entry-row-${entryId}"]`).should('not.exist');
+});
+
+Cypress.Commands.add('assertGratitudeEntryFormValidation', (fieldName: string, shouldBeInvalid: boolean = true) => {
+  // Map field names to their data-cy selectors
+  const fieldSelectors: { [key: string]: string } = {
+    date: '[data-cy="date"]',
+    entry: '[data-cy="entry"]',
+    mood: '[data-cy="mood"]',
+    timestamp: '[data-cy="timestamp"]',
+  };
+
+  const selector = fieldSelectors[fieldName] || `[data-testid="${fieldName}"]`;
+  if (shouldBeInvalid) {
+    cy.get(selector).should('have.class', 'is-invalid');
+  } else {
+    cy.get(selector).should('not.have.class', 'is-invalid');
+  }
+});
+
 declare global {
   namespace Cypress {
     interface Chainable {
@@ -69,6 +163,18 @@ declare global {
       getEntityDeleteDialogHeading(entityInstanceName: string): Cypress.Chainable;
       setFieldImageAsBytesOfEntity(fieldName: string, fileName: string, mimeType: string): Cypress.Chainable;
       setFieldSelectToLastOfEntity(fieldName: string): Cypress.Chainable;
+      // Gratitude Entry specific commands
+      createGratitudeEntry(entryData: { date: string; entry: string; mood: string; timestamp: string }): Cypress.Chainable;
+      deleteGratitudeEntry(entryId: number): Cypress.Chainable;
+      getGratitudeEntry(entryId: number): Cypress.Chainable;
+      fillGratitudeEntryForm(entryData: { date: string; entry: string; mood: string; timestamp: string }): Cypress.Chainable;
+      submitGratitudeEntryForm(): Cypress.Chainable;
+      waitForGratitudeEntrySave(): Cypress.Chainable;
+      waitForGratitudeEntryUpdate(): Cypress.Chainable;
+      waitForGratitudeEntryDelete(): Cypress.Chainable;
+      assertGratitudeEntryExists(entryId: number, expectedData: any): Cypress.Chainable;
+      assertGratitudeEntryDoesNotExist(entryId: number): Cypress.Chainable;
+      assertGratitudeEntryFormValidation(fieldName: string, shouldBeInvalid?: boolean): Cypress.Chainable;
     }
   }
 }
