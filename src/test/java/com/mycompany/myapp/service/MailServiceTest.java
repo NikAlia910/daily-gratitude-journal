@@ -213,7 +213,13 @@ class MailServiceTest {
 
         when(templateEngine.process(eq("mail/activationEmail"), any(Context.class))).thenReturn(templateContent);
         when(messageSource.getMessage(eq("email.activation.title"), any(), any(Locale.class))).thenReturn(subject);
-        doThrow(new MailException("Mail server error") {}).when(javaMailSender).send(any(MimeMessage.class));
+        doThrow(
+            new MailException("Mail server error") {
+                private static final long serialVersionUID = 1L;
+            }
+        )
+            .when(javaMailSender)
+            .send(any(MimeMessage.class));
 
         // When
         mailService.sendActivationEmail(testUser);
