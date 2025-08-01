@@ -20,12 +20,19 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: 17
+
       - name: Install Node.js packages
         run: npm install
-      - name: Run backend test with test profile
+
+      - name: Make mvnw executable
+        run: chmod +x mvnw
+      - name: Start backend server
         run: |
-          chmod +x mvnw
-          ./mvnw test -Dspring.profiles.active=test
+          nohup ./mvnw -Dskip.installnodenpm -Dskip.npm -ntp --batch-mode spring-boot:run &
+          npx wait-on http://localhost:8080/management/health
+
+      - name: Run backend test with test profile
+        run: ./mvnw test -Dspring.profiles.active=test
       - name: Run performance tests
         run: npm run ci:performance:test
       - name: Upload Gatling Report
