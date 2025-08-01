@@ -23,6 +23,7 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
@@ -127,6 +128,9 @@ public class GratitudeJournalingStepDefs extends StepDefs {
 
     @When("I create a gratitude entry with mood {string} and text {string}")
     public void i_create_a_gratitude_entry_with_mood_and_text(String moodString, String entryText) {
+        // Ensure we're in the correct security context
+        setupSecurityContext(testUser);
+
         currentEntry = new GratitudeEntryDTO();
         // Use different dates to avoid duplicate constraint violation
         // First call gets today, second call gets tomorrow
@@ -145,6 +149,9 @@ public class GratitudeJournalingStepDefs extends StepDefs {
 
     @When("I create a gratitude entry with only the required text {string}")
     public void i_create_a_gratitude_entry_with_only_the_required_text(String entryText) {
+        // Ensure we're in the correct security context
+        setupSecurityContext(testUser);
+
         currentEntry = new GratitudeEntryDTO();
         currentEntry.setDate(LocalDate.now());
         currentEntry.setEntry(entryText);
@@ -214,12 +221,18 @@ public class GratitudeJournalingStepDefs extends StepDefs {
         createTestEntry(LocalDate.now().minusDays(1), "Yesterday's gratitude", Mood.HAPPY);
         createTestEntry(LocalDate.now().minusDays(2), "Two days ago gratitude", Mood.GRATEFUL);
         createTestEntry(LocalDate.now().minusDays(3), "Three days ago gratitude", Mood.CONTENT);
+
+        // Ensure we're back in the correct security context
+        setupSecurityContext(testUser);
     }
 
     @Given("I created a gratitude entry on {string} with text {string}")
     public void i_created_a_gratitude_entry_on_with_text(String dateString, String entryText) {
         LocalDate date = LocalDate.parse(dateString);
         createTestEntry(date, entryText, Mood.GRATEFUL);
+
+        // Ensure we're back in the correct security context
+        setupSecurityContext(testUser);
     }
 
     private void createTestEntry(LocalDate date, String entryText, Mood mood) {
@@ -230,6 +243,8 @@ public class GratitudeJournalingStepDefs extends StepDefs {
         entry.setTimestamp(Instant.now());
 
         try {
+            // Ensure we're in the correct security context for the current user
+            setupSecurityContext(testUser);
             gratitudeEntryService.save(entry);
         } catch (Exception e) {
             // This might fail due to business logic not being implemented yet
@@ -240,7 +255,9 @@ public class GratitudeJournalingStepDefs extends StepDefs {
     @When("I request to view my past gratitude entries")
     public void i_request_to_view_my_past_gratitude_entries() {
         try {
-            entriesPage = gratitudeEntryService.findAll(PageRequest.of(0, 20));
+            // Use sorting to ensure most recent entries appear first
+            PageRequest pageRequest = PageRequest.of(0, 20, Sort.by(Sort.Direction.DESC, "date", "timestamp"));
+            entriesPage = gratitudeEntryService.findAll(pageRequest);
             retrievedEntries = entriesPage.getContent();
         } catch (Exception e) {
             lastException = e;
@@ -251,7 +268,9 @@ public class GratitudeJournalingStepDefs extends StepDefs {
     public void i_request_entries_for_a_specific_date_range() {
         try {
             // This should be implemented as a service method for date range filtering
-            entriesPage = gratitudeEntryService.findAll(PageRequest.of(0, 20));
+            // Use sorting to ensure most recent entries appear first
+            PageRequest pageRequest = PageRequest.of(0, 20, Sort.by(Sort.Direction.DESC, "date", "timestamp"));
+            entriesPage = gratitudeEntryService.findAll(pageRequest);
             retrievedEntries = entriesPage.getContent();
         } catch (Exception e) {
             lastException = e;
@@ -303,6 +322,8 @@ public class GratitudeJournalingStepDefs extends StepDefs {
         entry.setTimestamp(Instant.now());
 
         try {
+            // Ensure we're in the correct security context for the current user
+            setupSecurityContext(testUser);
             return gratitudeEntryService.save(entry);
         } catch (Exception e) {
             lastException = e;
@@ -377,6 +398,9 @@ public class GratitudeJournalingStepDefs extends StepDefs {
 
     @When("I try to create another gratitude entry for the same date")
     public void i_try_to_create_another_gratitude_entry_for_the_same_date() {
+        // Ensure we're in the correct security context
+        setupSecurityContext(testUser);
+
         GratitudeEntryDTO duplicateEntry = new GratitudeEntryDTO();
         duplicateEntry.setDate(LocalDate.now());
         duplicateEntry.setEntry("Second entry for today");
@@ -455,6 +479,9 @@ public class GratitudeJournalingStepDefs extends StepDefs {
 
     @When("I try to create a gratitude entry with empty text")
     public void i_try_to_create_a_gratitude_entry_with_empty_text() {
+        // Ensure we're in the correct security context
+        setupSecurityContext(testUser);
+
         currentEntry = new GratitudeEntryDTO();
         currentEntry.setDate(LocalDate.now());
         currentEntry.setEntry(""); // Empty text
@@ -482,6 +509,9 @@ public class GratitudeJournalingStepDefs extends StepDefs {
 
     @When("I create a gratitude entry with a very long text of {int} characters")
     public void i_create_a_gratitude_entry_with_a_very_long_text_of_characters(int length) {
+        // Ensure we're in the correct security context
+        setupSecurityContext(testUser);
+
         String longText = "a".repeat(length);
 
         currentEntry = new GratitudeEntryDTO();

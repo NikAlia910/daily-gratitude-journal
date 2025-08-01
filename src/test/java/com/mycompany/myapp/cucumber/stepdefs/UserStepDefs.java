@@ -3,6 +3,8 @@ package com.mycompany.myapp.cucumber.stepdefs;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+import com.mycompany.myapp.domain.User;
+import com.mycompany.myapp.repository.UserRepository;
 import com.mycompany.myapp.security.AuthoritiesConstants;
 import com.mycompany.myapp.web.rest.UserResource;
 import io.cucumber.java.Before;
@@ -10,6 +12,7 @@ import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 import java.util.ArrayList;
 import java.util.List;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -18,7 +21,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
@@ -27,13 +30,39 @@ public class UserStepDefs extends StepDefs {
     @Autowired
     private UserResource userResource;
 
+    @Autowired
+    private UserRepository userRepository;
+
     private MockMvc userResourceMock;
 
     @Before
     public void setup() {
+        // Ensure admin user exists
+        User adminUser = userRepository
+            .findOneByLogin("admin")
+            .orElseGet(() -> {
+                User user = new User();
+                user.setLogin("admin");
+                user.setPassword(RandomStringUtils.insecure().nextAlphanumeric(60));
+                user.setEmail("admin@localhost");
+                user.setFirstName("Administrator");
+                user.setLastName("Administrator");
+                user.setActivated(true);
+                user.setLangKey("en");
+                return userRepository.save(user);
+            });
+
         List<GrantedAuthority> grantedAuthorities = new ArrayList<>();
         grantedAuthorities.add(new SimpleGrantedAuthority(AuthoritiesConstants.ADMIN));
-        User principal = new User("admin", "", true, true, true, true, grantedAuthorities);
+        UserDetails principal = new org.springframework.security.core.userdetails.User(
+            "admin",
+            "",
+            true,
+            true,
+            true,
+            true,
+            grantedAuthorities
+        );
         Authentication authentication = new UsernamePasswordAuthenticationToken(
             principal,
             principal.getPassword(),

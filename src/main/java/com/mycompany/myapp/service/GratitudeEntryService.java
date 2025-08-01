@@ -247,6 +247,9 @@ public class GratitudeEntryService {
      * Check if the gratitude entry belongs to the current user.
      */
     private boolean belongsToCurrentUser(GratitudeEntry entry) {
+        if (entry.getUser() == null) {
+            return false;
+        }
         return SecurityUtils.getCurrentUserLogin().map(login -> login.equals(entry.getUser().getLogin())).orElse(false);
     }
 }

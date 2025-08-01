@@ -7,9 +7,9 @@ import { Storage } from 'react-jhipster';
 import { websocketActivityMessage } from 'app/modules/administration/administration.reducer';
 import { getAccount, logoutSession } from 'app/shared/reducers/authentication';
 
-let stompClient = null;
+let stompClient: any = null;
 
-let subscriber = null;
+let subscriber: any = null;
 let connection: Promise<any>;
 let connectedPromise: any = null;
 let listener: Observable<any>;
@@ -24,21 +24,42 @@ const createListener = (): Observable<any> =>
   });
 
 export const sendActivity = (page: string) => {
-  connection?.then(() => {
-    stompClient?.send(
-      '/topic/activity', // destination
-      JSON.stringify({ page }), // body
-      {}, // header
-    );
-  });
+  if (connection && stompClient) {
+    connection
+      .then(() => {
+        if (stompClient && stompClient.connected) {
+          stompClient.send(
+            '/topic/activity', // destination
+            JSON.stringify({ page }), // body
+            {}, // header
+          );
+        }
+      })
+      .catch(() => {
+        // Silently handle connection errors
+      });
+  }
 };
 
 const subscribe = () => {
-  connection.then(() => {
-    subscriber = stompClient.subscribe('/topic/tracker', data => {
-      listenerObserver.next(JSON.parse(data.body));
-    });
-  });
+  if (connection && stompClient) {
+    connection
+      .then(() => {
+        if (stompClient && stompClient.connected) {
+          subscriber = stompClient.subscribe('/topic/tracker', data => {
+            try {
+              listenerObserver.next(JSON.parse(data.body));
+            } catch (error) {
+              // Handle JSON parsing errors
+              console.warn('Failed to parse websocket message:', error);
+            }
+          });
+        }
+      })
+      .catch(() => {
+        // Silently handle connection errors
+      });
+  }
 };
 
 const connect = () => {
@@ -51,7 +72,8 @@ const connect = () => {
 
   // building absolute path so that websocket doesn't fail when deploying with a context path
   const loc = window.location;
-  const baseHref = document.querySelector('base').getAttribute('href').replace(/\/$/, '');
+  const baseElement = document.querySelector('base');
+  const baseHref = baseElement ? baseElement.getAttribute('href')?.replace(/\/$/, '') || '' : '';
 
   const headers = {};
   let url = `//${loc.host}${baseHref}/websocket/tracker`;
@@ -59,23 +81,44 @@ const connect = () => {
   if (authToken) {
     url += `?access_token=${authToken}`;
   }
-  const socket = new SockJS(url);
-  stompClient = Stomp.over(socket, { protocols: ['v12.stomp'] });
 
-  stompClient.connect(headers, () => {
-    connectedPromise('success');
+  try {
+    const socket = new SockJS(url);
+    stompClient = Stomp.over(socket, { protocols: ['v12.stomp'] });
+
+    stompClient.connect(
+      headers,
+      () => {
+        connectedPromise('success');
+        connectedPromise = null;
+        sendActivity(window.location.pathname);
+        alreadyConnectedOnce = true;
+      },
+      (error: any) => {
+        // Handle connection errors
+        console.warn('Websocket connection failed:', error);
+        connectedPromise = null;
+      },
+    );
+  } catch (error) {
+    // Handle SockJS creation errors
+    console.warn('Failed to create SockJS connection:', error);
     connectedPromise = null;
-    sendActivity(window.location.pathname);
-    alreadyConnectedOnce = true;
-  });
+  }
 };
 
 const disconnect = () => {
   if (stompClient !== null) {
-    if (stompClient.connected) {
-      stompClient.disconnect();
+    try {
+      if (stompClient.connected) {
+        stompClient.disconnect();
+      }
+    } catch (error) {
+      // Handle disconnect errors
+      console.warn('Error disconnecting websocket:', error);
+    } finally {
+      stompClient = null;
     }
-    stompClient = null;
   }
   alreadyConnectedOnce = false;
 };
@@ -84,7 +127,14 @@ const receive = () => listener;
 
 const unsubscribe = () => {
   if (subscriber !== null) {
-    subscriber.unsubscribe();
+    try {
+      subscriber.unsubscribe();
+    } catch (error) {
+      // Handle unsubscribe errors
+      console.warn('Error unsubscribing from websocket:', error);
+    } finally {
+      subscriber = null;
+    }
   }
   listener = createListener();
 };
@@ -92,7 +142,7 @@ const unsubscribe = () => {
 export default store => next => action => {
   if (getAccount.fulfilled.match(action)) {
     connect();
-    const isAdmin = action.payload.data.authorities.includes('ROLE_ADMIN');
+    const isAdmin = action.payload?.data?.authorities?.includes('ROLE_ADMIN') || false;
     if (!alreadyConnectedOnce && isAdmin) {
       subscribe();
       receive().subscribe(activity => {
