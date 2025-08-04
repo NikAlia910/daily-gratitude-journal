@@ -731,6 +731,6 @@ public class ComprehensiveApiGatlingTest extends Simulation {
     ScenarioBuilder users = scenario("Comprehensive API Test").exec(mainScenario);
 
     {
-        setUp(users.injectOpen(rampUsers(10).during(Duration.ofSeconds(10)))).protocols(httpConf);
+        setUp(users.injectOpen(rampUsers(100).during(Duration.ofSeconds(60)))).protocols(httpConf);
     }
 }
