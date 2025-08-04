@@ -35,6 +35,13 @@ jobs:
       - name: Run JUnit
         run: ./mvnw test -Dspring.profiles.active=test
 
+      - name: Upload JUnit Test Report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: junit-test-report
+          path: target/surefire-reports/**
+
       - name: Run Gatling
         run: npm run ci:performance:test
 
@@ -49,6 +56,13 @@ jobs:
 
       - name: Run Spring test
         run: ./mvnw -ntp -Dskip.installnodenpm -Dskip.npm verify --batch-mode -Dlogging.level.ROOT=OFF -Dlogging.level.tech.jhipster=OFF -Dlogging.level.com.mycompany.myapp=OFF -Dlogging.level.org.springframework=OFF -Dlogging.level.org.springframework.web=OFF -Dlogging.level.org.springframework.security=OFF
+
+      - name: Upload Spring Test Report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: spring-test-report
+          path: target/surefire-reports/**
 
       - name: Package application
         run: npm run java:jar:prod
