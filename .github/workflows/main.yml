@@ -35,12 +35,15 @@ jobs:
       - name: Run JUnit
         run: ./mvnw test -Dspring.profiles.active=test
 
+      - name: Generate JUnit HTML Report
+        run: ./mvnw surefire-report:report -Dspring.profiles.active=test
+
       - name: Upload JUnit Test Report
         uses: actions/upload-artifact@v4
         if: always()
         with:
           name: junit-test-report
-          path: target/surefire-reports/**
+          path: target/site/surefire-report.html
 
       - name: Run Gatling
         run: npm run ci:performance:test
@@ -57,12 +60,38 @@ jobs:
       - name: Run Spring test
         run: ./mvnw -ntp -Dskip.installnodenpm -Dskip.npm verify --batch-mode -Dlogging.level.ROOT=OFF -Dlogging.level.tech.jhipster=OFF -Dlogging.level.com.mycompany.myapp=OFF -Dlogging.level.org.springframework=OFF -Dlogging.level.org.springframework.web=OFF -Dlogging.level.org.springframework.security=OFF
 
+      - name: Generate Spring Test HTML Report
+        run: ./mvnw surefire-report:report -ntp -Dskip.installnodenpm -Dskip.npm --batch-mode
+
       - name: Upload Spring Test Report
         uses: actions/upload-artifact@v4
         if: always()
         with:
           name: spring-test-report
-          path: target/surefire-reports/**
+          path: target/site/surefire-report.html
+
+      - name: Generate Comprehensive Test Report
+        run: |
+          echo "# Test Execution Summary" > target/test-summary.md
+          echo "" >> target/test-summary.md
+          echo "## JUnit Tests" >> target/test-summary.md
+          echo "- Reports: [JUnit Test Report](./junit-test-report/surefire-report.html)" >> target/test-summary.md
+          echo "" >> target/test-summary.md
+          echo "## Spring Integration Tests" >> target/test-summary.md
+          echo "- Reports: [Spring Test Report](./spring-test-report/surefire-report.html)" >> target/test-summary.md
+          echo "" >> target/test-summary.md
+          echo "## Performance Tests" >> target/test-summary.md
+          echo "- Reports: [Gatling Report](./gatling-report/)" >> target/test-summary.md
+          echo "" >> target/test-summary.md
+          echo "## Frontend Tests" >> target/test-summary.md
+          echo "- Jest tests executed via npm run ci:frontend:test" >> target/test-summary.md
+
+      - name: Upload Comprehensive Test Summary
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-summary
+          path: target/test-summary.md
 
       - name: Package application
         run: npm run java:jar:prod
