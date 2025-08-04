@@ -64,29 +64,6 @@ jobs:
           name: spring-test-report
           path: target/site/jacoco/**
 
-      - name: Generate Comprehensive Test Report
-        run: |
-          echo "# Test Execution Summary" > target/test-summary.md
-          echo "" >> target/test-summary.md
-          echo "## JUnit Tests with Code Coverage" >> target/test-summary.md
-          echo "- Reports: [JUnit JaCoCo Report](./junit-test-report/index.html)" >> target/test-summary.md
-          echo "" >> target/test-summary.md
-          echo "## Spring Integration Tests with Code Coverage" >> target/test-summary.md
-          echo "- Reports: [Spring JaCoCo Report](./spring-test-report/index.html)" >> target/test-summary.md
-          echo "" >> target/test-summary.md
-          echo "## Performance Tests" >> target/test-summary.md
-          echo "- Reports: [Gatling Report](./gatling-report/)" >> target/test-summary.md
-          echo "" >> target/test-summary.md
-          echo "## Frontend Tests" >> target/test-summary.md
-          echo "- Jest tests executed via npm run ci:frontend:test" >> target/test-summary.md
-
-      - name: Upload Comprehensive Test Summary
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: test-summary
-          path: target/test-summary.md
-
       - name: Package application
         run: npm run java:jar:prod
 
