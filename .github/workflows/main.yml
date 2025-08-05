@@ -16,31 +16,54 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22.15.0
+      - name: Install Node.js packages
+        run: npm install
+      - name: Make mvnw executable
+        run: chmod +x mvnw
       - uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: 17
 
-      - name: Install Node.js packages
-        run: npm install
-
-      - name: Make mvnw executable
-        run: chmod +x mvnw
-
       - name: Start backend server
         run: |
           nohup ./mvnw -Dskip.installnodenpm -Dskip.npm -ntp --batch-mode spring-boot:run &
-          npx wait-on http://localhost:8080/management/health
+          npx wait-on http://localhost:8080/
 
-      - name: Run JUnit with JaCoCo
+      - name: Run JUnit
         run: ./mvnw clean test jacoco:report -Dspring.profiles.active=test
 
-      - name: Upload JUnit Test Report
+      - name: Upload JUnit Test Report with JaCoCo
         uses: actions/upload-artifact@v4
         if: always()
         with:
           name: junit-test-report
           path: target/site/jacoco/**
+
+      - name: Run Jest
+        run: npm run ci:frontend:test
+
+      - name: Run Spring test
+        run: ./mvnw -ntp -Dskip.installnodenpm -Dskip.npm verify jacoco:report --batch-mode -Dlogging.level.ROOT=OFF -Dlogging.level.tech.jhipster=OFF -Dlogging.level.com.mycompany.myapp=OFF -Dlogging.level.org.springframework=OFF -Dlogging.level.org.springframework.web=OFF -Dlogging.level.org.springframework.security=OFF
+
+      - name: Upload Spring Test Report with JaCoCo
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: spring-test-report
+          path: target/site/jacoco/**
+
+      - name: Run Cypress
+        run: |
+          npm run java:jar:prod
+          npm run ci:e2e:package
+          npm run ci:e2e:prepare
+          npm run ci:e2e:run
+          npm run ci:e2e:teardown
+        env:
+          CYPRESS_ENABLE_RECORD: false
+          CYPRESS_PROJECT_ID: ${{ secrets.CYPRESS_PROJECT_ID }}
+          CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
 
       - name: Run Gatling
         run: npm run ci:performance:test
@@ -50,35 +73,3 @@ jobs:
         with:
           name: gatling-report
           path: target/gatling/**
-
-      - name: Run Jest
-        run: npm run ci:frontend:test
-
-      - name: Run Spring test with JaCoCo
-        run: ./mvnw -ntp -Dskip.installnodenpm -Dskip.npm verify jacoco:report --batch-mode -Dlogging.level.ROOT=OFF -Dlogging.level.tech.jhipster=OFF -Dlogging.level.com.mycompany.myapp=OFF -Dlogging.level.org.springframework=OFF -Dlogging.level.org.springframework.web=OFF -Dlogging.level.org.springframework.security=OFF
-
-      - name: Upload Spring Test Report
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: spring-test-report
-          path: target/site/jacoco/**
-
-      - name: Package application
-        run: npm run java:jar:prod
-
-      - name: 'E2E: Package'
-        run: npm run ci:e2e:package
-
-      - name: 'E2E: Prepare'
-        run: npm run ci:e2e:prepare
-
-      - name: Run Cypress
-        run: npm run ci:e2e:run
-        env:
-          CYPRESS_ENABLE_RECORD: false
-          CYPRESS_PROJECT_ID: ${{ secrets.CYPRESS_PROJECT_ID }}
-          CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
-
-      - name: 'E2E: Teardown'
-        run: npm run ci:e2e:teardown
